@@ -5,10 +5,10 @@ use warnings;
 
 use DBI;
 use DBI::Const::GetInfoType;
-use Mouse;
+use Moose;
 use Carp qw(croak);
 
-our $VERSION = '1.0';
+our $VERSION = '1.1';
 
 # TODO:  For pg see "upsert" - http://www.postgresql.org/docs/current/static/plpgsql-control-structures.html#PLPGSQL-UPSERT-EXAMPLE
 
@@ -41,7 +41,7 @@ memcached is not appropriate.  Also, the speed of simple lookups on
 MySQL when accessed over a local socket is very hard to beat.  DBI is
 fast.
 
-Note that this module is built on the Mouse framework, just like the
+Note that this module is built on the Moose framework, just like the
 main CHI modules.
 
 =head1 ATTRIBUTES
@@ -108,7 +108,7 @@ __PACKAGE__->meta->make_immutable;
 
 =item BUILD
 
-Standard issue Mouse BUILD method.  Used to build the sql_strings.  If
+Standard issue Moose BUILD method.  Used to build the sql_strings.  If
 the parameter C<create_table> to C<new()> was set to true, it will
 attempt to create the db table.  For Mysql and SQLite the statement is
 "create if not exists..." so it's generally harmless.

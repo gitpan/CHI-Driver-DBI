@@ -14,7 +14,7 @@ my $builder = Module::Build->new(
     },
     requires => {
         'DBI' => 0,
-        'CHI' => 0.102,
+        'CHI' => 0.23,
     },
     create_makefile_pl => 'traditional',
 );
