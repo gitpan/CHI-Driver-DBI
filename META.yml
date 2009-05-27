@@ -1,6 +1,6 @@
 ---
 name: CHI-Driver-DBI
-version: 1.1
+version: 1.2
 author:
   - 'Perrin Harkins <perrin@elem.com>'
 abstract: Use DBI for cache storage
@@ -8,7 +8,7 @@ license: perl
 resources:
   license: http://dev.perl.org/licenses/
 requires:
-  CHI: 0.23
+  CHI: 0.241
   DBI: 0
 build_requires:
   CHI: 0
@@ -17,14 +17,14 @@ build_requires:
 provides:
   CHI::Driver::DBI:
     file: lib/CHI/Driver/DBI.pm
-    version: 1.1
+    version: 1.2
   CHI::t::Driver::DBI:
     file: lib/CHI/t/Driver/DBI.pm
   CHI::t::Driver::DBI::SQLite:
     file: lib/CHI/t/Driver/DBI/SQLite.pm
   CHI::t::Driver::DBI::mysql:
     file: lib/CHI/t/Driver/DBI/mysql.pm
-generated_by: Module::Build version 0.2808
+generated_by: Module::Build version 0.33
 meta-spec:
-  url: http://module-build.sourceforge.net/META-spec-v1.2.html
-  version: 1.2
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
