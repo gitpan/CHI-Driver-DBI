@@ -1,9 +1,10 @@
-package CHI::t::Driver::DBI::SQLite;
-
+package CHI::Driver::DBI::t::SQLite;
 use strict;
 use warnings;
 
-use base qw(CHI::t::Driver::DBI);
+use base qw(CHI::Driver::DBI::t::Base);
+
+sub required_modules { return { 'DBD::SQLite' => undef } }
 
 sub dsn {
     return 'dbi:SQLite:dbname=t/dbfile.db';

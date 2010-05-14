@@ -8,7 +8,7 @@ use DBI::Const::GetInfoType;
 use Moose;
 use Carp qw(croak);
 
-our $VERSION = '1.2';
+our $VERSION = '1.21';
 
 # TODO:  For pg see "upsert" - http://www.postgresql.org/docs/current/static/plpgsql-control-structures.html#PLPGSQL-UPSERT-EXAMPLE
 
@@ -29,20 +29,15 @@ CHI::Driver::DBI - Use DBI for cache storage
 
 =head1 DESCRIPTION
 
-This driver uses a database table to store the cache.  The newest
-versions of MySQL and SQLite work are known to work.  Other RDBMSes
-should work.
+This driver uses a database table to store the cache.  The newest versions of
+MySQL and SQLite work are known to work.  Other RDBMSes should work.
 
-Why cache things in a database?  Isn't the database what people are
-trying to avoid with caches?  This is often true, but a simple primary
-key lookup is extremely fast in many databases and this provides a
-shared cache that can be used when less reliable storage like
-memcached is not appropriate.  Also, the speed of simple lookups on
-MySQL when accessed over a local socket is very hard to beat.  DBI is
-fast.
-
-Note that this module is built on the Moose framework, just like the
-main CHI modules.
+Why cache things in a database?  Isn't the database what people are trying to
+avoid with caches?  This is often true, but a simple primary key lookup is
+extremely fast in many databases and this provides a shared cache that can be
+used when less reliable storage like memcached is not appropriate.  Also, the
+speed of simple lookups on MySQL when accessed over a local socket is very hard
+to beat.  DBI is fast.
 
 =head1 ATTRIBUTES
 
@@ -50,16 +45,15 @@ main CHI modules.
 
 =item namespace
 
-The namespace you pass in will be appended to the C<table_prefix> and
-used as a table name.  That means that if you don't specify a
-namespace or table_prefix the cache will be stored in a table called
-C<chi_Default>.
+The namespace you pass in will be appended to the C<table_prefix> and used as a
+table name.  That means that if you don't specify a namespace or table_prefix
+the cache will be stored in a table called C<chi_Default>.
 
 =item table_prefix
 
-This is the prefix that is used when building a table name.  If you
-want to just use the namespace as a literal table name, set this to
-undef.  Defaults to C<chi_>.
+This is the prefix that is used when building a table name.  If you want to
+just use the namespace as a literal table name, set this to undef.  Defaults to
+C<chi_>.
 
 =cut
 
@@ -67,14 +61,12 @@ has 'table_prefix' => ( is => 'rw', isa => 'Str', default => 'chi_', );
 
 =item dbh
 
-The main, or rw, DBI handle used to communicate with the db.
-If a dbh_ro handle is defined then this handle will only be used
-for writing.
+The main, or rw, DBI handle used to communicate with the db. If a dbh_ro handle
+is defined then this handle will only be used for writing.
 
-This attribute can be set after object creation as well, so in a
-persistent environment like mod_perl or FastCGI you may keep an
-instance of the cache around and set the dbh on each request after
-checking it with ping().
+This attribute can be set after object creation as well, so in a persistent
+environment like mod_perl or FastCGI you may keep an instance of the cache
+around and set the dbh on each request after checking it with ping().
 
 =cut
 
@@ -82,8 +74,8 @@ has 'dbh' => ( is => 'rw', isa => 'DBI::db', required => 1, );
 
 =item dbh_ro
 
-The optional DBI handle used for read-only operations.  This is
-to support master/slave RDBMS setups.
+The optional DBI handle used for read-only operations.  This is to support
+master/slave RDBMS setups.
 
 =cut
 
@@ -91,8 +83,8 @@ has 'dbh_ro' => ( is => 'rw', isa => 'DBI::db', );
 
 =item sql_strings
 
-Hashref of SQL strings to use in the different cache operations.
-The strings are built depending on the RDBMS that dbh is attached to.
+Hashref of SQL strings to use in the different cache operations. The strings
+are built depending on the RDBMS that dbh is attached to.
 
 =back
 
@@ -108,10 +100,10 @@ __PACKAGE__->meta->make_immutable;
 
 =item BUILD
 
-Standard issue Moose BUILD method.  Used to build the sql_strings.  If
-the parameter C<create_table> to C<new()> was set to true, it will
-attempt to create the db table.  For Mysql and SQLite the statement is
-"create if not exists..." so it's generally harmless.
+Standard issue Moose BUILD method.  Used to build the sql_strings.  If the
+parameter C<create_table> to C<new()> was set to true, it will attempt to
+create the db table.  For Mysql and SQLite the statement is "create if not
+exists..." so it's generally harmless.
 
 =cut
 
@@ -273,14 +265,15 @@ sub get_namespaces { croak 'not supported' }
 
 =head1 Authors
 
-Original version by Justin DeVuyst.  Current version and maintenance by Perrin Harkins.
+Original version by Justin DeVuyst and Perrin Harkins. Currently maintained by
+Jonathan Swartz.
 
 =head1 COPYRIGHT & LICENSE
 
 Copyright (C) Justin DeVuyst
 
-This program is free software; you can redistribute it and/or modify it
-under the same terms as Perl itself.
+This program is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
 
 =cut
 

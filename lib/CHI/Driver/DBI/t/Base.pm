@@ -1,5 +1,4 @@
-package CHI::t::Driver::DBI;
-
+package CHI::Driver::DBI::t::Base;
 use strict;
 use warnings;
 
