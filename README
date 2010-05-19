@@ -4,10 +4,17 @@ NAME
 SYNOPSIS
      use CHI;
 
-     my $dbh   = DBI->connect(...);
-     my $cache = CHI->new( driver => 'DBI', dbh => $dbh, );
-     OR
-     my $cache = CHI->new( driver => 'DBI', dbh => $dbh, dbh_ro => $dbh_ro, );
+     # Supply a DBI handle
+     #
+     my $cache = CHI->new( driver => 'DBI', dbh => DBI->connect(...) );
+
+     # or a DBIx::Connector
+     #
+     my $cache = CHI->new( driver => 'DBI', dbh => DBIx::Connector->new(...) );
+
+     # or code that generates a DBI handle
+     #
+     my $cache = CHI->new( driver => 'DBI', dbh => sub { ...; return $dbh } );
 
 DESCRIPTION
     This driver uses a database table to store the cache. The newest
@@ -37,10 +44,19 @@ ATTRIBUTES
         dbh_ro handle is defined then this handle will only be used for
         writing.
 
-        This attribute can be set after object creation as well, so in a
-        persistent environment like mod_perl or FastCGI you may keep an
-        instance of the cache around and set the dbh on each request after
-        checking it with ping().
+        You may pass this handle, and dbh_ro below, in one of three forms:
+
+        *   a regular DBI handle
+
+        *   a DBIx::Connector object
+
+        *   a code reference that will be called each time and is expected
+            to return a DBI handle, e.g.
+
+                sub { My::Rose::DB->new->dbh }
+
+        The last two options are valuable if your CHI object is going to
+        live for enough time that a single DBI handle might time out, etc.
 
     dbh_ro
         The optional DBI handle used for read-only operations. This is to

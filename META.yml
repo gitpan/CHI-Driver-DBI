@@ -21,8 +21,7 @@ no_index:
     - t
 requires:
   CHI: 0.241
-  DBI: 0
   perl: 5.6.0
 resources:
   license: http://dev.perl.org/licenses/
-version: 1.21
+version: 1.22
