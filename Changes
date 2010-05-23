@@ -2,6 +2,10 @@ Revision history for CHI-Driver-DBI
 
 ** denotes an incompatible change
 
+1.23  May 22, 2010
+
+- Add DBI as requirement
+
 1.22  May 19, 2010
 
 - Allow DBIx::Connection or database handle generators to be passed for dbh and dbh_ro -
