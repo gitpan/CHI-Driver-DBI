@@ -1,6 +1,6 @@
 package CHI::Driver::DBI::t::CHIDriverTests::Base;
 BEGIN {
-  $CHI::Driver::DBI::t::CHIDriverTests::Base::VERSION = '1.24';
+  $CHI::Driver::DBI::t::CHIDriverTests::Base::VERSION = '1.25';
 }
 use DBI;
 use Module::Load::Conditional qw(can_load);

@@ -181,7 +181,7 @@ CHI::Driver::DBI - Use DBI for cache storage
 
 =head1 VERSION
 
-version 1.24
+version 1.25
 
 =head1 SYNOPSIS
 
@@ -211,6 +211,8 @@ used when less reliable storage like memcached is not appropriate.  Also, the
 speed of simple lookups on MySQL when accessed over a local socket is very hard
 to beat.  DBI is fast.
 
+=for readme stop
+
 =head1 SCHEMA
 
 Each namespace requires a table like this:
@@ -224,7 +226,8 @@ Each namespace requires a table like this:
 The size of the key column depends on how large you want keys to be and may be
 limited by the maximum size of an indexed column in your database.
 
-The driver will attempt to create the table for you if you pass
+The driver will try to create an appropriate table for you if you pass
+C<create_table> to the constructor.
 
 =head1 CONSTRUCTOR PARAMETERS
 
@@ -283,25 +286,16 @@ master/slave RDBMS setups.
 
 =back
 
+=for readme continue
+
 =head1 AUTHORS
 
 Original version by Justin DeVuyst and Perrin Harkins. Currently maintained by
 Jonathan Swartz.
 
-=head1 COPYRIGHT & LICENSE
-
-Copyright (C) Justin DeVuyst
-
-This program is free software; you can redistribute it and/or modify it under
-the same terms as Perl itself.
-
-=head1 AUTHOR
-
-Jonathan Swartz <swartz@pobox.com>
-
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2011 by Jonathan Swartz.
+This software is copyright (c) 2011 by Justin DeVuyst.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.

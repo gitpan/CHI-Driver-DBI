@@ -1,6 +1,6 @@
 package CHI::Driver::DBI::t::CHIDriverTests::SQLite;
 BEGIN {
-  $CHI::Driver::DBI::t::CHIDriverTests::SQLite::VERSION = '1.24';
+  $CHI::Driver::DBI::t::CHIDriverTests::SQLite::VERSION = '1.25';
 }
 use strict;
 use warnings;
