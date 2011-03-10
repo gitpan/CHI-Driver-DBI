@@ -1,0 +1,322 @@
+diff -ur CHI-Driver-DBI-1.21/Changes CHI-Driver-DBI-1.22/Changes
+--- CHI-Driver-DBI-1.21/Changes	2010-05-14 15:35:51.000000000 -0700
++++ CHI-Driver-DBI-1.22/Changes	2010-05-19 08:36:16.000000000 -0700
+@@ -2,6 +2,11 @@
+ 
+ ** denotes an incompatible change
+ 
++1.22  May 19, 2010
++
++- Allow DBIx::Connection or database handle generators to be passed for dbh and dbh_ro -
++  submitted by Stevan Little
++
+ 1.21  May 14, 2010
+ 
+ - Move source to github
+diff -ur CHI-Driver-DBI-1.21/MANIFEST CHI-Driver-DBI-1.22/MANIFEST
+--- CHI-Driver-DBI-1.21/MANIFEST	2010-05-14 15:37:25.000000000 -0700
++++ CHI-Driver-DBI-1.22/MANIFEST	2010-05-19 09:40:35.000000000 -0700
+@@ -11,11 +11,11 @@
+ inc/Module/Install/Win32.pm
+ inc/Module/Install/WriteAll.pm
+ lib/CHI/Driver/DBI.pm
+-lib/CHI/Driver/DBI/t/Base.pm
+-lib/CHI/Driver/DBI/t/SQLite.pm
++lib/CHI/Driver/DBI/t/CHIDriverTests/Base.pm
++lib/CHI/Driver/DBI/t/CHIDriverTests/SQLite.pm
+ Makefile.PL
+ MANIFEST			This list of files
+ META.yml
+ README
+ t/00-load.t
+-t/Driver-DBI-SQLite.t
++t/CHIDriverTests-SQLite.t
+diff -ur CHI-Driver-DBI-1.21/META.yml CHI-Driver-DBI-1.22/META.yml
+--- CHI-Driver-DBI-1.21/META.yml	2010-05-14 15:37:25.000000000 -0700
++++ CHI-Driver-DBI-1.22/META.yml	2010-05-19 09:40:35.000000000 -0700
+@@ -21,8 +21,7 @@
+     - t
+ requires:
+   CHI: 0.241
+-  DBI: 0
+   perl: 5.6.0
+ resources:
+   license: http://dev.perl.org/licenses/
+-version: 1.21
++version: 1.22
+diff -ur CHI-Driver-DBI-1.21/Makefile.PL CHI-Driver-DBI-1.22/Makefile.PL
+--- CHI-Driver-DBI-1.21/Makefile.PL	2010-05-14 15:21:42.000000000 -0700
++++ CHI-Driver-DBI-1.22/Makefile.PL	2010-05-19 09:39:07.000000000 -0700
+@@ -10,7 +10,6 @@
+ build_requires 'Test::Class' => 0;
+ build_requires 'Test::Most'  => 0;
+ 
+-requires 'DBI' => '0';
+ requires 'CHI' => '0.241';
+ 
+ license 'perl';
+diff -ur CHI-Driver-DBI-1.21/README CHI-Driver-DBI-1.22/README
+--- CHI-Driver-DBI-1.21/README	2010-05-14 15:37:23.000000000 -0700
++++ CHI-Driver-DBI-1.22/README	2010-05-19 09:40:34.000000000 -0700
+@@ -4,10 +4,17 @@
+ SYNOPSIS
+      use CHI;
+ 
+-     my $dbh   = DBI->connect(...);
+-     my $cache = CHI->new( driver => 'DBI', dbh => $dbh, );
+-     OR
+-     my $cache = CHI->new( driver => 'DBI', dbh => $dbh, dbh_ro => $dbh_ro, );
++     # Supply a DBI handle
++     #
++     my $cache = CHI->new( driver => 'DBI', dbh => DBI->connect(...) );
++
++     # or a DBIx::Connector
++     #
++     my $cache = CHI->new( driver => 'DBI', dbh => DBIx::Connector->new(...) );
++
++     # or code that generates a DBI handle
++     #
++     my $cache = CHI->new( driver => 'DBI', dbh => sub { ...; return $dbh } );
+ 
+ DESCRIPTION
+     This driver uses a database table to store the cache. The newest
+@@ -37,10 +44,19 @@
+         dbh_ro handle is defined then this handle will only be used for
+         writing.
+ 
+-        This attribute can be set after object creation as well, so in a
+-        persistent environment like mod_perl or FastCGI you may keep an
+-        instance of the cache around and set the dbh on each request after
+-        checking it with ping().
++        You may pass this handle, and dbh_ro below, in one of three forms:
++
++        *   a regular DBI handle
++
++        *   a DBIx::Connector object
++
++        *   a code reference that will be called each time and is expected
++            to return a DBI handle, e.g.
++
++                sub { My::Rose::DB->new->dbh }
++
++        The last two options are valuable if your CHI object is going to
++        live for enough time that a single DBI handle might time out, etc.
+ 
+     dbh_ro
+         The optional DBI handle used for read-only operations. This is to
+Only in CHI-Driver-DBI-1.21/lib/CHI/Driver/DBI/t: Base.pm
+Only in CHI-Driver-DBI-1.22/lib/CHI/Driver/DBI/t: CHIDriverTests
+Only in CHI-Driver-DBI-1.21/lib/CHI/Driver/DBI/t: SQLite.pm
+diff -ur CHI-Driver-DBI-1.21/lib/CHI/Driver/DBI.pm CHI-Driver-DBI-1.22/lib/CHI/Driver/DBI.pm
+--- CHI-Driver-DBI-1.21/lib/CHI/Driver/DBI.pm	2010-05-14 15:36:01.000000000 -0700
++++ CHI-Driver-DBI-1.22/lib/CHI/Driver/DBI.pm	2010-05-19 08:30:18.000000000 -0700
+@@ -3,17 +3,32 @@
+ use strict;
+ use warnings;
+ 
+-use DBI;
+ use DBI::Const::GetInfoType;
+ use Moose;
++use Moose::Util::TypeConstraints;
+ use Carp qw(croak);
+ 
+-our $VERSION = '1.21';
++our $VERSION = '1.22';
+ 
+ # TODO:  For pg see "upsert" - http://www.postgresql.org/docs/current/static/plpgsql-control-structures.html#PLPGSQL-UPSERT-EXAMPLE
+ 
+ extends 'CHI::Driver';
+ 
++my $type = "CHI::Driver::DBI";
++
++subtype "$type.DBIHandleGenerator" => as 'CodeRef';
++subtype "$type.DBIXConnector"      => as 'DBIx::Connector';
++subtype "$type.DBIHandle"          => as 'DBI::db';
++
++coerce "$type.DBIHandleGenerator" => from "$type.DBIXConnector" => via {
++    my $dbixconn = $_;
++    sub { $dbixconn->dbh }
++};
++coerce "$type.DBIHandleGenerator" => from "$type.DBIHandle" => via {
++    my $dbh = $_;
++    sub { $dbh }
++};
++
+ =head1 NAME
+ 
+ CHI::Driver::DBI - Use DBI for cache storage
+@@ -22,10 +37,17 @@
+ 
+  use CHI;
+ 
+- my $dbh   = DBI->connect(...);
+- my $cache = CHI->new( driver => 'DBI', dbh => $dbh, );
+- OR
+- my $cache = CHI->new( driver => 'DBI', dbh => $dbh, dbh_ro => $dbh_ro, );
++ # Supply a DBI handle
++ #
++ my $cache = CHI->new( driver => 'DBI', dbh => DBI->connect(...) );
++
++ # or a DBIx::Connector
++ #
++ my $cache = CHI->new( driver => 'DBI', dbh => DBIx::Connector->new(...) );
++
++ # or code that generates a DBI handle
++ #
++ my $cache = CHI->new( driver => 'DBI', dbh => sub { ...; return $dbh } );
+ 
+ =head1 DESCRIPTION
+ 
+@@ -64,13 +86,33 @@
+ The main, or rw, DBI handle used to communicate with the db. If a dbh_ro handle
+ is defined then this handle will only be used for writing.
+ 
+-This attribute can be set after object creation as well, so in a persistent
+-environment like mod_perl or FastCGI you may keep an instance of the cache
+-around and set the dbh on each request after checking it with ping().
++You may pass this handle, and dbh_ro below, in one of three forms:
++
++=over
++
++=item *
++
++a regular DBI handle
++
++=item *
++
++a L<DBIx::Connector|DBIx::Connector> object
++
++=item *
++
++a code reference that will be called each time and is expected to return a DBI
++handle, e.g.
++
++    sub { My::Rose::DB->new->dbh }
++
++=back
++
++The last two options are valuable if your CHI object is going to live for
++enough time that a single DBI handle might time out, etc.
+ 
+ =cut
+ 
+-has 'dbh' => ( is => 'rw', isa => 'DBI::db', required => 1, );
++has 'dbh' => ( is => 'ro', isa => "$type.DBIHandleGenerator", coerce => 1 );
+ 
+ =item dbh_ro
+ 
+@@ -79,7 +121,12 @@
+ 
+ =cut
+ 
+-has 'dbh_ro' => ( is => 'rw', isa => 'DBI::db', );
++has 'dbh_ro' => (
++    is        => 'ro',
++    isa       => "$type.DBIHandleGenerator",
++    predicate => 'has_dbh_ro',
++    coerce    => 1,
++);
+ 
+ =item sql_strings
+ 
+@@ -108,13 +155,15 @@
+ =cut
+ 
+ sub BUILD {
+-    my ( $self, $args, ) = @_;
++    my ( $self, $args ) = @_;
++
++    my $dbh = $self->dbh->();
+ 
+     $self->sql_strings;
+ 
+     if ( $args->{create_table} ) {
+-        $self->{dbh}->do( $self->{sql_strings}->{create} )
+-          or croak $self->{dbh}->errstr;
++        $dbh->do( $self->sql_strings->{create} )
++          or croak $dbh->errstr;
+     }
+ 
+     return;
+@@ -129,10 +178,11 @@
+ sub _build_sql_strings {
+     my ( $self, ) = @_;
+ 
+-    my $table   = $self->dbh->quote_identifier( $self->_table );
+-    my $value   = $self->dbh->quote_identifier('value');
+-    my $key     = $self->dbh->quote_identifier('key');
+-    my $db_name = $self->dbh->get_info( $GetInfoType{SQL_DBMS_NAME} );
++    my $dbh     = $self->dbh->();
++    my $table   = $dbh->quote_identifier( $self->_table );
++    my $value   = $dbh->quote_identifier('value');
++    my $key     = $dbh->quote_identifier('key');
++    my $db_name = $dbh->get_info( $GetInfoType{SQL_DBMS_NAME} );
+ 
+     my $strings = {
+         fetch    => "SELECT $value FROM $table WHERE $key = ?",
+@@ -172,8 +222,8 @@
+ sub fetch {
+     my ( $self, $key, ) = @_;
+ 
+-    my $dbh = $self->{dbh_ro} ? $self->{dbh_ro} : $self->{dbh};
+-    my $sth = $dbh->prepare_cached( $self->{sql_strings}->{fetch} )
++    my $dbh = $self->has_dbh_ro ? $self->dbh_ro->() : $self->dbh->();
++    my $sth = $dbh->prepare_cached( $self->sql_strings->{fetch} )
+       or croak $dbh->errstr;
+     $sth->execute($key) or croak $sth->errstr;
+     my $results = $sth->fetchall_arrayref;
+@@ -188,12 +238,12 @@
+ sub store {
+     my ( $self, $key, $data, ) = @_;
+ 
+-    my $sth = $self->{dbh}->prepare_cached( $self->{sql_strings}->{store} );
++    my $dbh = $self->dbh->();
++    my $sth = $dbh->prepare_cached( $self->sql_strings->{store} );
+     if ( not $sth->execute( $key, $data ) ) {
+-        if ( $self->{sql_strings}->{store2} ) {
+-            my $sth =
+-              $self->{dbh}->prepare_cached( $self->{sql_strings}->{store2} )
+-              or croak $self->{dbh}->errstr;
++        if ( $self->sql_strings->{store2} ) {
++            my $sth = $dbh->prepare_cached( $self->sql_strings->{store2} )
++              or croak $dbh->errstr;
+             $sth->execute( $data, $key )
+               or croak $sth->errstr;
+         }
+@@ -213,8 +263,9 @@
+ sub remove {
+     my ( $self, $key, ) = @_;
+ 
+-    my $sth = $self->dbh->prepare_cached( $self->{sql_strings}->{remove} )
+-      or croak $self->{dbh}->errstr;
++    my $dbh = $self->dbh->();
++    my $sth = $dbh->prepare_cached( $self->sql_strings->{remove} )
++      or croak $dbh->errstr;
+     $sth->execute($key) or croak $sth->errstr;
+     $sth->finish;
+ 
+@@ -228,8 +279,9 @@
+ sub clear {
+     my ( $self, $key, ) = @_;
+ 
+-    my $sth = $self->{dbh}->prepare_cached( $self->{sql_strings}->{clear} )
+-      or croak $self->{dbh}->errstr;
++    my $dbh = $self->dbh->();
++    my $sth = $dbh->prepare_cached( $self->sql_strings->{clear} )
++      or croak $dbh->errstr;
+     $sth->execute() or croak $sth->errstr;
+     $sth->finish();
+ 
+@@ -243,8 +295,8 @@
+ sub get_keys {
+     my ( $self, ) = @_;
+ 
+-    my $dbh = $self->{dbh_ro} ? $self->{dbh_ro} : $self->{dbh};
+-    my $sth = $dbh->prepare_cached( $self->{sql_strings}->{get_keys} )
++    my $dbh = $self->has_dbh_ro ? $self->dbh_ro->() : $self->dbh->();
++    my $sth = $dbh->prepare_cached( $self->sql_strings->{get_keys} )
+       or croak $dbh->errstr;
+     $sth->execute() or croak $sth->errstr;
+     my $results = $sth->fetchall_arrayref( [0] );
+Only in CHI-Driver-DBI-1.22/t: CHIDriverTests-SQLite.t
+Only in CHI-Driver-DBI-1.21/t: Driver-DBI-SQLite.t
