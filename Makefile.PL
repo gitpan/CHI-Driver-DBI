@@ -4,31 +4,31 @@ use warnings;
 
 
 
-use ExtUtils::MakeMaker 6.31;
+use ExtUtils::MakeMaker 6.30;
 
 
 
 my %WriteMakefileArgs = (
-  'ABSTRACT' => 'Use DBI for cache storage',
-  'AUTHOR' => 'Jonathan Swartz <swartz@pobox.com>',
-  'BUILD_REQUIRES' => {
-    'Test::Class' => '0',
-    'Test::More' => '0'
+  "ABSTRACT" => "Use DBI for cache storage",
+  "AUTHOR" => "Jonathan Swartz <swartz\@pobox.com>",
+  "BUILD_REQUIRES" => {
+    "Test::Class" => 0,
+    "Test::More" => 0
   },
-  'CONFIGURE_REQUIRES' => {
-    'ExtUtils::MakeMaker' => '6.31'
+  "CONFIGURE_REQUIRES" => {
+    "ExtUtils::MakeMaker" => "6.30"
   },
-  'DISTNAME' => 'CHI-Driver-DBI',
-  'EXE_FILES' => [],
-  'LICENSE' => 'perl',
-  'NAME' => 'CHI::Driver::DBI',
-  'PREREQ_PM' => {
-    'CHI' => '0.241',
-    'DBI' => '1.26'
+  "DISTNAME" => "CHI-Driver-DBI",
+  "EXE_FILES" => [],
+  "LICENSE" => "perl",
+  "NAME" => "CHI::Driver::DBI",
+  "PREREQ_PM" => {
+    "CHI" => "0.241",
+    "DBI" => "1.26"
   },
-  'VERSION' => '1.25',
-  'test' => {
-    'TESTS' => 't/*.t'
+  "VERSION" => "1.26",
+  "test" => {
+    "TESTS" => "t/*.t"
   }
 );
 
