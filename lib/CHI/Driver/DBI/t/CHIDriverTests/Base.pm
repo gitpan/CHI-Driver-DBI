@@ -1,7 +1,5 @@
 package CHI::Driver::DBI::t::CHIDriverTests::Base;
-{
-  $CHI::Driver::DBI::t::CHIDriverTests::Base::VERSION = '1.26';
-}
+$CHI::Driver::DBI::t::CHIDriverTests::Base::VERSION = '1.27';
 use DBI;
 use Module::Load::Conditional qw(can_load);
 use Test::More;
@@ -69,5 +67,7 @@ sub test_with_dbi_generator : Tests(1) {
     $cache->set( 'foo', $t );
     is( $cache->get('foo'), $t );
 }
+
+sub test_multiple_processes { }
 
 1;

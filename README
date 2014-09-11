@@ -2,7 +2,7 @@ NAME
     CHI::Driver::DBI - Use DBI for cache storage
 
 VERSION
-    version 1.26
+    version 1.27
 
 SYNOPSIS
         use CHI;

@@ -4,7 +4,7 @@
       "Jonathan Swartz <swartz@pobox.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 4.300028, CPAN::Meta::Converter version 2.120921",
+   "generated_by" : "Dist::Zilla version 5.020, CPAN::Meta::Converter version 2.120921",
    "license" : [
       "perl_5"
    ],
@@ -25,13 +25,14 @@
    "prereqs" : {
       "configure" : {
          "requires" : {
-            "ExtUtils::MakeMaker" : "6.30"
+            "ExtUtils::MakeMaker" : "0"
          }
       },
       "runtime" : {
          "requires" : {
             "CHI" : "0.241",
-            "DBI" : "1.26"
+            "DBI" : "1.26",
+            "Moose" : "0.66"
          }
       },
       "test" : {
@@ -53,6 +54,6 @@
          "web" : "https://github.com/jonswar/perl-chi-driver-dbi"
       }
    },
-   "version" : "1.26"
+   "version" : "1.27"
 }
 
